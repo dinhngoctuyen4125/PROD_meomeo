@@ -23,3 +23,29 @@ python PROD.py \
 --overwrite_output_dir \
 --do_train \
 --save_strategy no || exit
+
+OutputDir="outputs/results/PROD_lr${lr}"
+suffix="2026"
+
+for file in "$SaveModelPath"/*; do
+filename=$(basename "$file")
+echo "Filename: ${filename}, Path: ${file}"
+
+python test_model_utility.py \
+--model_name ${ModelName} \
+--model_path ${file} \
+--dataset "HumanEval" \
+--num-samples 5 \
+--acctual-num-samples 5 \
+--temperature 0.2 \
+--output-dir ${OutputDir}/${filename}/model_utility \
+--output-file-suffix ${suffix}
+
+python evaluatre.py \
+--dataset HumanEval \
+--input_path "${OutputDir}/${filename}/model_utility/HumanEval_${ModelName}_temp0.2_toppNone_topkNone_samples5_0shot_${suffix}.jsonl" \
+--truncate \
+--eval_standard \
+--k_list 1 3 5
+
+done
